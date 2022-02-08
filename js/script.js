@@ -1,6 +1,3 @@
-//TODO начал заниматься кнопкой отчистки параметров
-// нужно разобраться как установить значение радиокнопок по дефолту
-
 let result = document.querySelector('.counter__result');
 
 let parameterStorage = {
@@ -17,14 +14,14 @@ let height = document.querySelector('#height');
 let weight = document.querySelector('#weight');
 let submitButton = document.querySelector('.form__submit-button')
 let resetButton = document.querySelector('.form__reset-button')
-let parametres = [age, height, weight, female, male]
+let parametres = [age, height, weight, male, female]
 
 let activites = document.querySelectorAll('.radio')
 
 for(let active of activites){
    let changer = active.querySelector('input');
    changer.addEventListener('change', function(evt){
-    parameterStorage.activ = evt.target.dataset.kef;
+    parameterStorage.activ = +(evt.target.dataset.kef);
     checkFilling(parameterStorage);
    })
 }
@@ -43,9 +40,9 @@ function addInputParamHandler(param) {
 // формула расчета нормы
 function calcCaloriesNorm({gender, age, height, weight}){    
     if(gender === 'male'){
-        return (10 * weight) + (6,25 * height) - (5 * age) + 5;
+        return (10 * +weight) + (6,25 * +height) - (5 * +age) + 5;
     }
-    return (10 * weight) + (6,25 * height) - (5 * age) - 161;
+    return (10 * +weight) + (6,25 * +height) - (5 * +age) - 161;
 }
 
 //Проверяем заполнены ли все поля
@@ -59,22 +56,37 @@ function checkFilling(obj){
     }
 }
 
+// очищаем поля и  обнуляем данные в обьекте
 function resetAll(parameterStorage, parametres, activites){
     return function(){
+        console.log(parameterStorage)
         for(let param of parametres){
-            if(param == male || param == female){
-                param.cheсked = true;
-                continue;
-            }
-            param.value = 0;
-            parameterStorage[param.name] = param.value;        
+            parameterStorage[param.name] = '';        
         }
-
         parameterStorage.activ = 1.2;
         parameterStorage.gender = 'male';
-        checkFilling(parameterStorage);
         console.log(parameterStorage);
+        result.classList.add('counter__result--hidden')
+        checkFilling(parameterStorage);
         
     }
 }
-resetButton.addEventListener('click',  resetAll(parameterStorage, parametres, activites))
+
+resetButton.addEventListener('click',  resetAll(parameterStorage, parametres, activites));
+submitButton.addEventListener('click', function(evt){
+    evt.preventDefault();
+
+    let resulto = Math.round(calcCaloriesNorm(parameterStorage) * parameterStorage.activ);
+    
+    let normCalories = document.querySelector('#calories-norm');
+    normCalories.textContent = `${resulto}`;
+
+    let minimalCalories = document.querySelector('#calories-minimal');
+    minimalCalories.textContent = `${Math.round(resulto - (resulto * 0.15))}`;
+
+    let maximumCalories = document.querySelector('#calories-maximal')
+    maximumCalories.textContent = `${Math.round(resulto + (resulto * 0.15))}`;
+
+    result.classList.remove('counter__result--hidden');
+    console.log(parameterStorage)
+})
